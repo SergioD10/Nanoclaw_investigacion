@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { startApi } from './api.js';
 
 import {
   ASSISTANT_NAME,
@@ -8,7 +9,7 @@ import {
   POLL_INTERVAL,
   TRIGGER_PATTERN,
 } from './config.js';
-import { WhatsAppChannel } from './channels/whatsapp.js';
+///import { WhatsAppChannel } from './channels/whatsapp.js';
 import {
   ContainerOutput,
   runContainerAgent,
@@ -48,7 +49,7 @@ let registeredGroups: Record<string, RegisteredGroup> = {};
 let lastAgentTimestamp: Record<string, string> = {};
 let messageLoopRunning = false;
 
-let whatsapp: WhatsAppChannel;
+///let whatsapp: WhatsAppChannel;
 const channels: Channel[] = [];
 const queue = new GroupQueue();
 
@@ -128,7 +129,7 @@ export function _setRegisteredGroups(groups: Record<string, RegisteredGroup>): v
  * Process all pending messages for a group.
  * Called by the GroupQueue when it's this group's turn.
  */
-async function processGroupMessages(chatJid: string): Promise<boolean> {
+export async function processGroupMessages(chatJid: string): Promise<boolean> {
   const group = registeredGroups[chatJid];
   if (!group) return true;
 
@@ -444,10 +445,10 @@ async function main(): Promise<void> {
     registeredGroups: () => registeredGroups,
   };
 
-  // Create and connect channels
+  /* Create and connect channels
   whatsapp = new WhatsAppChannel(channelOpts);
   channels.push(whatsapp);
-  await whatsapp.connect();
+  await whatsapp.connect();*/
 
   // Start subsystems (independently of connection handler)
   startSchedulerLoop({
@@ -473,8 +474,7 @@ async function main(): Promise<void> {
     },
     registeredGroups: () => registeredGroups,
     registerGroup,
-    syncGroupMetadata: (force) => whatsapp?.syncGroupMetadata(force) ?? Promise.resolve(),
-    getAvailableGroups,
+    syncGroupMetadata: (_force) => Promise.resolve(),    getAvailableGroups,
     writeGroupsSnapshot: (gf, im, ag, rj) => writeGroupsSnapshot(gf, im, ag, rj),
   });
   queue.setProcessMessagesFn(processGroupMessages);
@@ -496,3 +496,4 @@ if (isDirectRun) {
     process.exit(1);
   });
 }
+startApi();
